@@ -1,0 +1,383 @@
+R = reward, s = state, a = action, π = policy
+
+State-space: set of all possible states that the env can be in.
+Action-space: set of all possible actions given a state.
+State-value: expected sum of discounted rewards for a state given we follow some policy.
+Action-value: expected rewards for taking an action in a particular state.
+Policy-function: a function that maps states to actions or the function that decides which actions to take given a state.
+Qfunction: a function that takes a state-action pair and returns the action-value.
+Qlearning: form of RL where we attempt to model the Qfunction.
+Off-policy Learning: learning a policy while collecting data using a different policy.
+On-policy  Learning: learning a policy while also simultaneously using it to collect data for learning.
+Catastrophic Forgetting: when new data being learned erases or corrupts the old information already learned.
+Experience Replay: a mechanism to allow batch training of RL algorithms in order to mitigate catastrophic forgetting and allow stable training.
+Target Network: a copy of the main DQN that we use to stabilize the update rule for training the main DQN.
+Markov Decision Process: predicts an action given the current state
+prob-dist = probability distribution
+
+A reinforcement learning algorithm essentially constructs an agent, which acts in
+an environment. The environment is often a game, but is more generally whatever
+process produces states, actions, and rewards. The agent has access to the current
+state of the environment, which is all the data about the environment at a particular
+time point. Using this state information, the agent takes an action which may 
+deterministically or probabilistically change the environment to be in a new state.
+
+The agent gets a reward for having taken an action which leads to a state and the goal of the 
+agent is to maximize the rewards. It is the state that produces the reward not the action.
+
+value functions and policy functions are used to decide which action to take based on 
+the information of the current state.
+policy 'π' is the strategy of an agent in an environment. It's a function that either
+accepts a state and produces an action to take or produces a prob dist 
+over the action space, given the state.
+
+policy function: π, s -> Pr(A|s) 
+π [policy] is a mapping from states to the (probabilistically) best actions for those states
+
+optimal policy: π* = armgax E(R|π)
+If we know the expected rewards for following any possible policy π, the optimal policy, π*,
+is a policy that, when followed, produces the maximum possible rewards.
+
+
+The goal of RL is to maximize the rewards, there are two ways to do this: 
+Directly: teach the agent to learn what actions are best, given it's present state
+Indirectly: teach the agent to learn which states are most valuable, then to take actions 
+            that lead to the most valuable states
+
+
+Value functions are functions that maps a state or a state-action pair to the expected reward
+of being in some state or taking some action in some state.
+state-value function: Vπ: s -> E(R|s,π)
+Vπ is a value function that maps a state s to the expected rewards, given that we start in 
+the state s and follow the some policy π. The policy is what determines observed rewards,
+and the value function is a reflection of observed rewards.
+
+action-value/Q function: Qπ: (s|a) -> E(R|a,s,π)
+Qπ is a value function that maps pairs (s, a) to the expected reward of taking action a in 
+state s, given that we're using the policy π.
+
+The main idea of QLearning is that the algorithm predicts the value of a state-action pair,
+and then compare this prediction to the observed accumulated rewards at some later time and
+update the parameters of your algorithm to make better predictions next time.
+
+def get_updated_Qvalue(old_qvalue, state, actions, reward, learning_rate, discount):
+    # Qval = oldQval + learning_rate*(reward + discount*max(Q(state, action) in actions) - oldQval)
+    return old_qvalue + learning_rate*(reward + discount * max([Q(state, action) for action in actions]) - old_qvalue)
+
+learning_rate is the size of the steps the agent takes which affects how fast it learns.
+discount is the factor that affects the agent's choice to take immediate rewards or take long term rewards which are greater than immediate rewards.
+The discount factor needs to be between 0 and 1, and we shouldn't set it exactly equal to 1, 
+because if we don't discount at all, we would have to consider the future rewards infinitely 
+far into the future, which is impossible in practice. 
+Even if we discount at 0.99999, there will eventually come a time beyond which we no
+longer consider any data, since it will be discounted to 0.
+
+
+We feed the state data and action into a DNN and it produces a prediction of how valuable 
+taking that action in that state is. 
+
+Building the Neural Network:
+decide how many inputs to give in the first layer
+decide how many hidden layers to keep
+decide how many output neurons to have
+decide how many parameters and weights each layer will have
+think how the input data of the state will be represented
+
+Generally, we want to use the Q function because it can tell us the value of taking an
+action in some state, so we can take the action that has the highest predicted value. 
+But it would be rather wasteful to separately compute the Q values for every possible action
+given the state, even though the Q function was originally defined that way. 
+A much more efficient procedure, and the one that DeepMind employed in its implementation
+of deep Q-learning, is to instead recast the Q function as a vector-valued function, 
+meaning that instead of computing and returning a single Q value for a single state-action
+pair, it will compute the Q values for all actions, given some state, and return the vector
+of all those Q values. So we might represent this new version of the Q function as QA(s),
+where A denotes the set of all possible actions.
+
+The output layer will be a vector of numbers. We can choose a epsilon greedy or a softmax 
+selection policy to decide which action to take. 
+
+__________________________________________________________________________________________________________________________
+
+QNet framework:
+1. We set up a for loop for the number of epochs.
+2. In the loop, we set up a while loop (while the game is in progress).
+3. We run the Q-network forward.
+4. We're using an epsilon-greedy implementation, so at time t with prob ε we will choose a random action. With prob 1 – ε, we will choose the action associated with the highest Q value from our neural network.
+5. Take action a as determined in the preceding step, and observe the new state s' and reward r_t+1.
+6. Run the network forward using s'. Store the highest Q value, which we'll call max Q.
+7. Our target value for training the network is r_t+1 + γ *max(QA(S_t+1)), where γ (gamma) is a parameter between 0 and 1. If after taking action at the game is over, there is no legitimate s_t+1, so γ *max(QA(S_t+1)) is not valid and we can set it to 0. The target becomes just r_t+1.
+8. Given that we have four outputs and we only want to update (i.e., train) the output associated with the action we just took, our target output vector is the same as the output vector from the first run, except we change the one output associated with our action to the result we computed using the Q-learning formula.
+9. Train the model on this one sample. Then repeat steps 2–9.
+
+
+Preventing catastrophic forgetting: Experience replay
+catastrophic forgetting: The algorithm just can't memorize a sequence of steps to take. It needs to be able to take the shortest path to the goal regarless of any initial board config.
+
+experience replay: basically gives us batch updating in an online learning scheme.
+1. In state s, take action a, and observe the new state s_t+1 and reward r_t+1.
+2. Store this as a tuple (s, a, s_t+1, r_t+1) in a list.
+3. Continue to store each experience in this list until you have filled the list to a specific length (this is up to you to define).
+4. Once the experience replay memory is filled, randomly select a subset (you need to define the subset size).
+5. Iterate through this subset and calculate value updates for each subset; store these in a target array Y and store the state s, of each memory in X.
+6. Use X and Y as a mini-batch for batch training. For subsequent epochs where the array is full, just overwrite old values in your experience replay memory array.
+
+
+Changing the Qnet's parameters after each move might cause the agent to be instable.
+The solution is to duplicate the Qnet into two copies, the regular and the target network, each with its own model parameters.
+
+1. Inidialize the QNet with parameters θ_Q.
+2. Initialize the target network TNet as a copy of the QNet but with separate parameters θ_T set to θ_Q.
+3. Use the epsilon-greedy strategy with the QNet's Qvals to select an action a.
+4. Observe the reward and new state r_t+1, S_t+1.
+5. The TNet's Qvals will be set to r_t+1, if the episode has just terminated(won or lost) or r_t+1 + Y*max(Q_θ(S_t+1)). 
+6. Backpropogate the TNet's Qval through the QNet. (not TNet)
+7. Every C number of iterations, set θ_r = θ_Q.
+
+The idea is that we update the main QNet's parameters on each training iteration, but we decrease the effect that recent updates have on the action selection, improving stability.
+
+model-based algorithm: For example, most chess-playing algorithms are model-based; 
+they know the rules of how chess works and what the result of taking certain moves 
+will be. The only part that isn't known (we want the algorithm to figure out) is 
+what sequence of moves will win the game. With a model in hand, the algorithm can
+make long-term plans in order to achieve its aim.
+
+model-free algorithm: For example Gridworld, we did not task the Q-network with 
+figuring out how Gridworld works; its only job was to predict expected rewards. 
+Hence, Q-learning is a model-free algorithm because it learns to get the highest 
+reward through trial and error.
+
+__________________________________________________________________________________________________________________________
+
+Picking the best policy: Policy gradient methods
+
+Stochastic policy gradient:
+A stochastic policy function accepts a state and returns a prob over actions.
+It is stochastic because it returns a prob dist over acitons rather than returning a deterministic, single action.
+degenerate dist is when all outcomes are assigned to 0 prob except for one, which is assigned 1.
+deterministic policy gradient (DPG) where a single output that the agent will always follow.
+conditional prob is the prob assigned to an outcome, assuming you have some additional data.
+A policy gradient method is a reinforcement learning approach that tries to directly learn a policy by generally using a parameterized function(NN) as a policy function and training it to increase the prob of actions based on the observed rewards.
+Reinforcement maximizes the prob of an action times the observed reward after taking that action, such that each action's prob(given a state) is adjusted according ot the size of the observed reward.
+
+
+Log prob:
+    Sometimes probabilities may be extremely tiny or very close to 1, 
+    and this runs into numerical issues when optimizing on a computer with limited numerical precision.
+    If we use a surrogate objective, -log(π_s(a|θ)), we have an objective that has a larger dynamic 
+    range (-inf, 0) than raw prob space.
+
+Credit assignment:
+    Our confidence in how good each action is diminishes the further we are from the point of reward.
+    In chess, we attribute more credit to the last move made than the first one. We're very confident 
+    that the move that directly led to us to winning was a good move, but we become less confident the 
+    further back we go. How much did the move five time steps ago contribute to winning? We're not so sure. 
+    This is the problem of credit assignment.
+    We express this uncertainty by multiplying the magnitude of the update by the discount factor[0 to 1].
+    The action right before the episode ends will have a discount factor of 1, meaning it will receive the
+    full gradient update, while earlier moves will be discounted by a faction such as 0.5 so the gradient
+    steps will be smaller.
+
+    We train the policy network by updating the parameters to minimize the objective(loss) function. 
+    1. Calculate the prob of the action actually taken at each time step.    
+    2. Multiply the prob by the discounted return (the sum of rewards).
+    3. Use this prob-weighted return to backpropagate and minimize the loss. 
+
+
+Calculate the prob of the Action:
+    We can use the stored past transitions to recompute the prob dists using the policy network 
+    and extract just the predicted prob for the action that was actually taken.
+
+Calculating Future Rewards:
+    We multiply the prob dist by the total reward we received after this state.
+    If the episode lasted 5 time steps, the return array would = [5,4,3,2,1], because the last action led us to loose.
+    This is linear-decrementation we want to discount the rewards exponentially.
+    So we just take an array and exponentiate it to another array.
+
+an agent in reinforcement learning is whatever function or algorithm takes a state and returns a concrete action that will be executed in the env.
+
+__________________________________________________________________________________________________________________________
+
+we want to improve the smaple efficiency by updating more frequently
+we want to decrease the variance of the reward we used to update our model
+
+These problems are related, since the reward variance depends on how many samples we collect 
+(more samples yields less variance). The idea behind a combined value-policy algorithm is to
+use the value learner to reduce the variance in the rewards that are used to train the policy. 
+That is, instead of minimizing the REINFORCE loss that included direct reference to the observed 
+return R from an episode, we instead add a baseline value such that the loss is now:
+Loss = -log(π(a|S)) * (R - V_π(S)) # V_π(S) is the value of the state
+V(S) - R is the advantage. Intuitively, the advantage quantity tells you how much better an
+action is, relative to what you expected. 
+
+We want to simultaneously train a policy neural network and a state-value or action-value NN.
+Algs of this sort are called actor-critic methods, where "actor" refers to the policy because thats 
+where the actions are generated, and "critic" refers to the value function, because thats what
+tells the actor how good its actions are. Since we're using R - V(S) to train the policy rather
+than just V(S), its is called advantage-actor-critic.
+
+If we naively tried to make online updates with the wrong type of env, we might never learn anything because the rewards might be too sparse.
+
+Q-network can learn decent Q values even when the rewards are sparse, because it bootstraps. 
+When we say an algorithm bootstraps, we mean it can make a prediction from a prediction. If 
+we ask you what the temperature will be like two days from now, you might first predict what 
+the temperature will be tomorrow, and then base your 2-day prediction on that. If your first 
+prediction is bad, your second may be even worse, so bootstrapping introduces a source of bias. 
+Bias is a systematic deviation from the true value of something, in this case from the true Q values.
+On the other hand, making predictions from predictions introduces a kind of self-consistency 
+that results in lower variance. Variance is a lack of precision in the predictions, 
+which means predictions that vary a lot.
+
+bias and variance are inversely proportionate
+
+batch training is necessary because the gradients, if we trained with single pieces of data at a time, 
+would have too much variance, and the parameters would never converge on their optimal values. We need to
+average out the noise in a batch of data to get the real signal before updating the model parameters. 
+
+For example, if you're training an image classifier to recognize hand-drawn digits, and you train it 
+with one image at a time, the algorithm would think that the background pixels are just as important 
+as the digits in the foreground; it can only see the signal when averaged together with other images. 
+The same concept applies in reinforcement learning, which is why we had to use an experience replay 
+buffer with DQN.
+
+One way to use RNNs without an experience replay is to run multiple copies of the agent in parallel, 
+each with separate instantiations of the environment. By distributing multiple independent agents 
+across different CPU processes, we can collect a varied set of experiences and therefore get a sample 
+of gradients that we can average together to get a lower variance mean gradient. This eliminates the 
+need for experience replay and allows us to train an algorithm in a completely online fashion, visiting 
+each state only once as it appears in the environment.
+
+Multiprocessing vs Multithreading
+The operating system software abstracts the physical CPU processors into virtual processes and threads. 
+A process contains its own memory space, and threads run within a single process. There are two forms 
+of parallel computations, multithreading and multiprocessing, and only in the latter form are computations 
+performed truly simultaneously. 
+
+In multiprocessing, computations are performed simultaneously on multiple, physically distinct processing 
+units such as CPU or GPU cores.
+
+Multithreading is like when people multitask: they can work on only one thing at a time but they switch 
+between different tasks while another task is idle. Therefore, tasks are not truly performed simultaneously 
+with multithreading; it is a software-level mechanism to improve efficiency in running multiple computations.
+Multithreading is really effective when your task requires a lot of input/output operations, such as reading 
+and writing data to the hard disk. When data is being read into RAM from the hard disk, computation on the 
+CPU is idle as it waits for the required data, and the operating system can use that idle CPU time to work 
+on a different task and then switch back when the I/O operation is done. 
+
+An actor-critic model needs to produce both a state value and action probabilites. We use the action 
+probabilites to select an action and receive a reward, which we compare with the state value to compute
+an advantage.
+
+1. Set up an Actor-critic model
+2. While we're in the current episode:
+    a. Define the hyperparameter Y(gamma, discount factor)
+    b. Start a new episode, in initial state s_t
+    c. Compute the value V(s_t) and store it in a list
+    d. Compute π(s_t), store it in a list and take action a_t. 
+       Receive the new state s_t+1 and reward r_t+1 and store the reward in a list
+3. Train:
+    a. Initialize R = 0. Loop through the rewards in reverse order to generate returns: R = r_i + Y*R
+        b. Minimize the actor loss: -log(π(a|s) * (R - v(s_t)))
+    c. Minimize the critic loss: (R - v)^2
+4. Repeat for every episode
+
+N-step learning: update the parameters after N steps where N is whatever we choose. 
+It shouldn't be 1 or a very big number but somewhere in the middle.
+with 1-step learning, the bootstrap may introduce a lot of bias.
+In N-step learning, the target value for the critic is more accurate, so the critic's training will be more stable and produce less bias.
+With bootstrapping, we're making a prediction from a prediction, so the predictions will be better if you are able to collect more data before making them.
+
+__________________________________________________________________________________________________________________________
+
+Evolution algorithms
+
+Genetic algorithms are better in some cases where a lot of exploration is required.
+DQN and stochastic policy gradient collect experiences and change the agent's NN to take actions that lead to a higher 
+reward. This can cause the agent not to explore new states if it already has an action. DQN uses epsilon-greedy policy 
+and stochastic policy gradient takes actions from a prob vector.
+
+Genetic algorithms don't nudge the agent in any direction, they produce a lot of agents of different params.
+This ensures adequate exploration and params of the fittest agents are passed on to the next generation.
+Genetic algorithms are more computation intensive than gradient based methods but are faster as they don't have to compute
+gradients through back-prop.
+We cannot train genetic algorithms with a small population size.
+
+Training a Genetic Algoirthm:
+1. Generate an initial population with random param vectors. [an individual is each param vector in the population]
+2. Iterate through this population in the env and assign a fitness score based on the rewards it earns.
+3. Take the individuals with the highest fitness in the population and pair them in a 'breeding population'.
+4. Take a random subset of params from a pair of the breeding population and combine them to introduce genetic diversity. 
+    If vector 1 is mating with vector 2, vector 1 = [1,2,3], vector 2 = [4,5,6]; the mating of these two vectors will be 
+    vectors [1,5,6] and [4,2,3].
+5. Now we randomly mutate the offsprings of the new generation to make sure we add new genetic diversity into every 
+    generation to prevent premature convergence on a local optimum. Mutation is just adding some small random noise to the 
+    params of the offspring. The mutation rate needs to be fairly low otherwise it will ruin the offspring.
+6. Repeat this process until we reach convergence.
+
+
+Evolution Strategy (ES): another form of genetic algorithm which doesn't use biologically accurate form of evolution.
+In an ES, we create a pop of individuals by repeatedly adding a small amount of random noise to a parent individual to 
+generate multiple varients of the parent. We then assign fitness scores to teach variant by testting them in the env, 
+and then we get a new parent by taking a weighted sum of all the variants.
+
+Training an ES Algorithm:
+1. Take a single parameter vector θ_t, sample a bunch of noise vectors of equal size (from a Gaussian dist), 
+    such as e_i ∼ N(μ,σ), where N is a Gaussian dist, μ mean vector, and standard deviation σ. 
+2. Then create a population of param vectors that are mutated versions of θ_t by taking θ_t+1 = θ_t + e_i. 
+3. Test each of these mutated param vectors in the env and assign them fitness scores based on their performance
+4. Get an updated param vector by taking a weighted sum of each of the mutated vectors, where the weights are 
+    proportional to their fitness scores.
+    
+θ_t+1 = θ_t + α * 1/Nσ * sum(F_i + e_i)
+
+ES algorithm is significantly simpler and faster than genetic algorithm since there's no mating step.
+We only perform mutation, and the recombinition step doesn't require to swap params from different parents, its simple 
+weighted sum of the fitness and gaussian noise.
+
+__________________________________________________________________________________________________________________________
+
+Distributed DQN: outputs a prob dist over state-action values for each possible action given a state
+
+Instead of using a neural network to represent a Q function that represents a single Q val, we can instead denote a value
+dist that represents a random variable of Q vals given a state-action pair. 
+This probabilistic formalism includes deterministic algorithms, since a deterministic outcome can laways be represented by
+a degerate prob dist where all the prob is assigned to a single outcome.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
