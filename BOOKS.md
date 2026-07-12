@@ -2,6 +2,7 @@
 
 | Book | Tag |
 |-----------|------|
+| Frankenstein - Mary Shelly.pdf | reading_now |
 | 10-Minute Toughness   The Mental Training Program for Winning.pdf | biographies |
 | 100 Things Millionaires Do - Nigel Cumberland.pdf | entrepreneurship |
 | 100M Offers - Alex Hormozi.pdf | entrepreneurship |
