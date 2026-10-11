@@ -1,8 +1,8 @@
 """TUI for the BOOKS.md table.
 
-Groups titles by the tag column. You can add a category, then insert or
-delete book rows. Book suggestions come from the files in the folders.
-It does not move files on disk.
+Groups titles by the tag column. You can add a category, then insert,
+rename, or delete book rows. Book suggestions come from the files in
+the folders. It does not move files on disk.
 
     python books_tui.py
     python books_tui.py path\\to\\BOOKS.md
@@ -147,6 +147,47 @@ def remove_row(rows, book, tag):
     return True
 
 
+def rename_row(rows, old, tag, new):
+    new = new.strip()
+    if not new:
+        return False, 'type a title'
+    if '|' in new:
+        return False, 'a title cannot contain |'
+    try:
+        index = rows.index((old, tag))
+    except ValueError:
+        return False, 'not in this tag'
+    if new == old:
+        return False, 'title is unchanged'
+    if (new, tag) in rows:
+        return False, f'already in {tag}'
+    folded = norm(new)
+    for existing, existing_tag in rows:
+        if (existing, existing_tag) == (old, tag):
+            continue
+        if existing_tag == tag and norm(existing) == folded:
+            return False, f'already in {tag} as "{existing}"'
+    rows.pop(index)
+    key = (new, tag)
+    last_less = None
+    for row_index, row in enumerate(rows):
+        if row < key:
+            last_less = row_index
+    rows.insert(0 if last_less is None else last_less + 1, key)
+    return True, f'renamed to "{new}"'
+
+
+def field_line(label, text, caret, width):
+    caret = max(0, min(len(text), caret))
+    shown = text[:caret] + '\u258c' + text[caret:]
+    line = label + shown
+    if len(line) <= width:
+        return line
+    focus = len(label) + caret
+    start = max(0, focus - width + 2)
+    return trunc(line[start:], width)
+
+
 def enable_vt():
     if os.name != 'nt':
         return
@@ -286,6 +327,8 @@ class App:
         self.status = ''
         self.pending = None
         self.memory = {}
+        self.original = None
+        self.caret = 0
         root = Path(library_root) if library_root else self.path.parent
         self.library = load_library(root)
 
@@ -310,7 +353,18 @@ class App:
             if self.filtering:
                 return filter_names(books, self.query)
             return books
+        if self.mode == 'edit':
+            return self.edit_suggestions()
         return self.add_suggestions()
+
+    def edit_suggestions(self):
+        taken = {
+            norm(book)
+            for book, tag in self.rows
+            if tag == self.tag and book != self.original
+        }
+        titles = [title for title in self.library if norm(title) not in taken]
+        return suggest_titles(titles, self.query)
 
     def add_suggestions(self):
         taken = {norm(book) for book, tag in self.rows if tag == self.tag}
@@ -348,7 +402,7 @@ class App:
         self.selected = items[0] if items else None
 
     def list_height(self, height):
-        chrome = 5 if self.mode == 'add' else 4
+        chrome = 5 if self.mode in ('add', 'edit') else 4
         return max(1, height - chrome)
 
     def finish_new_tag(self):
@@ -463,6 +517,8 @@ class App:
             return False
         if self.mode == 'newtag':
             return self.handle_newtag(key, height)
+        if self.mode == 'edit':
+            return self.handle_edit(key, height)
         if self.mode == 'add':
             return self.handle_add(key, height)
         if self.filtering:
@@ -506,6 +562,79 @@ class App:
             self.status = ''
             self.on_query_changed()
         return False
+
+    def handle_edit(self, key, height):
+        if key == 'esc':
+            self.selected = self.original
+            self.original = None
+            self.query = ''
+            self.mode = 'books'
+            self.status = ''
+            return False
+        if key == 'backspace':
+            if self.caret > 0:
+                self.query = self.query[:self.caret - 1] + self.query[self.caret:]
+                self.caret -= 1
+            self.status = ''
+            self.on_query_changed()
+            return False
+        if key == 'delete':
+            if self.caret < len(self.query):
+                self.query = self.query[:self.caret] + self.query[self.caret + 1:]
+            self.status = ''
+            self.on_query_changed()
+            return False
+        if key == 'left':
+            self.caret = max(0, self.caret - 1)
+            return False
+        if key == 'right':
+            self.caret = min(len(self.query), self.caret + 1)
+            return False
+        if key == 'home':
+            self.caret = 0
+            return False
+        if key == 'end':
+            self.caret = len(self.query)
+            return False
+        if key == 'tab':
+            items = self.current_items()
+            if not items:
+                self.status = 'no suggestion'
+                return False
+            self.clamp()
+            self.query = items[self.cursor]
+            self.caret = len(self.query)
+            self.status = ''
+            self.on_query_changed()
+            return False
+        if key == 'enter':
+            self.save_edit()
+            return False
+        if key in ('up', 'down', 'pgup', 'pgdn'):
+            self.move(key, height)
+            self.status = ''
+            return False
+        if len(key) == 1 and key.isprintable():
+            self.query = self.query[:self.caret] + key + self.query[self.caret:]
+            self.caret += 1
+            self.status = ''
+            self.on_query_changed()
+        return False
+
+    def save_edit(self):
+        old = self.original
+        new = self.query.strip()
+        ok, message = rename_row(self.rows, old, self.tag, new)
+        self.status = message
+        if not ok:
+            return
+        self.save()
+        if self.memory.get(self.tag) == old:
+            self.memory[self.tag] = new
+        self.selected = new
+        self.original = None
+        self.query = ''
+        self.mode = 'books'
 
     def handle_newtag(self, key, height):
         if key == 'esc':
@@ -574,6 +703,20 @@ class App:
         if self.mode == 'books' and key in ('b', 'left', 'esc', 'backspace'):
             self.back_to_tags()
             return False
+        if self.mode == 'books' and key == 'e':
+            items = self.clamp()
+            if not items:
+                self.status = 'nothing to edit'
+                return False
+            self.original = items[self.cursor]
+            self.query = self.original
+            self.caret = len(self.query)
+            self.mode = 'edit'
+            self.cursor = 0
+            self.scroll = 0
+            self.selected = None
+            self.status = ''
+            return False
         if self.mode == 'books' and key == 'a':
             self.memory[self.tag] = self.selected
             self.mode = 'add'
@@ -598,6 +741,8 @@ class App:
         height = max(6, height)
         if self.mode == 'add':
             return self.build_add(width, height)
+        if self.mode == 'edit':
+            return self.build_edit(width, height)
         if self.mode == 'newtag':
             return self.build_newtag(width, height)
         return self.build_list(width, height)
@@ -642,7 +787,7 @@ class App:
         elif showing == 'tags':
             help_text = 'arrows move    n new    enter open    / filter    q quit'
         else:
-            help_text = 'arrows move    a add    d remove    b back    / filter    q quit'
+            help_text = 'a add    e edit    d remove    b back    / filter    q quit'
         lines.append(trunc(self.status, width))
         lines.append(trunc(help_text, width))
         return lines
@@ -673,6 +818,36 @@ class App:
             hint = 'no folder match — enter adds this title anyway'
         lines.append(trunc(hint, width))
         lines.append(trunc('enter add selected    tab add typed text    esc back', width))
+        return lines
+
+    def build_edit(self, width, height):
+        items = self.clamp()
+        right = f'{self.cursor + 1}/{len(items)}' if items else 'edit'
+        lines = [
+            header_line(f'edit in {self.tag}', right, width),
+            '-' * width,
+            field_line('title: ', self.query, self.caret, width),
+        ]
+        labels = []
+        for title in items:
+            folders = ', '.join(self.library.get(title, []))
+            labels.append(fit_pair(title, folders, width - 2) if folders else title)
+        if self.query.strip():
+            placeholder = 'no matches in the folders'
+        else:
+            placeholder = 'type to search books in the folders'
+        lines.extend(self.window(labels, width, self.list_height(height), placeholder))
+        hint = self.status
+        if not hint:
+            others = [tag for book, tag in self.rows if book == self.original and tag != self.tag]
+            if others:
+                hint = 'also in ' + ', '.join(others) + ' — only this row changes'
+            elif items and self.selected:
+                folders = self.library.get(self.selected, [])
+                if folders:
+                    hint = 'in ' + ', '.join(folders)
+        lines.append(trunc(hint, width))
+        lines.append(trunc('enter save    tab use suggestion    esc cancel', width))
         return lines
 
     def build_newtag(self, width, height):
