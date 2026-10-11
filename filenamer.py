@@ -52,7 +52,7 @@ def crawl_files(directory):
         dirs[:] = [d for d in dirs if not matches_ignore_pattern(os.path.join(normalized_root, d).lstrip('/'), ignore_patterns, is_dir=True)]
 
         for file in files:
-            if file in ['desktop.ini', 'filenamer.py', 'README.md', '.gitignore']:
+            if file in ['desktop.ini', 'filenamer.py', 'books_tui.py', 'README.md', '.gitignore']:
                 continue
 
             file_rel = os.path.join(normalized_root, file).lstrip('/')

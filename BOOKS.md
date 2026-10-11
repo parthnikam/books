@@ -2,7 +2,6 @@
 
 | Book | Tag |
 |-----------|------|
-| Frankenstein - Mary Shelly.pdf | reading_now |
 | 10-Minute Toughness   The Mental Training Program for Winning.pdf | biographies |
 | 100 Things Millionaires Do - Nigel Cumberland.pdf | entrepreneurship |
 | 100M Offers - Alex Hormozi.pdf | entrepreneurship |
@@ -22,12 +21,11 @@
 | BOOKS.md | Root |
 | Beginning of Infinity - David Deutsch.pdf | novels |
 | Benjamin Franklin An American Life - Walter Isaacson.pdf | biographies |
-| Bhagavad Gita - Eaknath Eswaran.pdf | pragmatic |
 | Bhagavad Gita As It Is.pdf | pragmatic |
 | Billion Dollar Loser - Reeves Wiedeman.pdf | entrepreneurship |
 | Black Holes and Time Warps - Kip Thorne.pdf | sci-fi |
 | Book Of Elon - Eric Jorgenson.pdf | biographies |
-| Book Of Elon - Eric Jorgenson.pdf | reading_now |
+| Book of Elon - Eric Jorgenson.pdf | reading_now |
 | Buy Back Your Time - Dan Martell.pdf | entrepreneurship |
 | C hackers guide.pdf | algorithms |
 | CRACKING the CODING INTERVIEW.pdf | algorithms |
@@ -35,7 +33,6 @@
 | Cant Hurt Me - David Goggins.pdf | biographies |
 | Cant Hurt Me - David Goggins.pdf | personal_favorites |
 | Catalyst - How to Change Anyone's Mind.pdf | novels |
-| Charlie’s Almanack - The Wit and Wisdom of Charles T. Munger.pdf | reading_now |
 | Clean Code.pdf | code |
 | Coaching, Mentoring and Managing  A Coach Guidebook.pdf | entrepreneurship |
 | Code - The Hidden Language of Computer Hardware and Software.pdf | code |
@@ -43,6 +40,7 @@
 | Competitive Programmers Handbook.pdf | algorithms |
 | Competitive Programming.pdf | algorithms |
 | Complete Sherlock Holmes.pdf | novels |
+| Complete Sherlock Holmes.pdf | personal_favorites |
 | Cosmos - Carl Sagan.pdf | novels |
 | Creativity Problem Solving - Brian Tracy.pdf | brian_tracy |
 | Dark Psychology   Richard Campbell.pdf | biographies |
@@ -63,8 +61,9 @@
 | Empire of AI Dreams.pdf | biographies |
 | Essays Of Ralph Waldo Emerson.pdf | pragmatic |
 | Excellent Advice For Living - Kevin Kelly.pdf | novels |
-| Excellent Advice For Living - Kevin Kelly.pdf | reading_now |
 | Fabric of Reality - David Deutsch.pdf | novels |
+| Facebook - Steven Levy.pdf | personal_favorites |
+| Facebook - Steven Levy.pdf | reading_now |
 | Flight Plan - Brian Tracy.pdf | brian_tracy |
 | GIAC Certified Penetration Tester.pdf | hacking |
 | Game Theory Algorithmic Thinking.pdf | algorithms |
@@ -95,7 +94,6 @@
 | Marcus Aurelius Meditations.txt | stoic |
 | Mathematics For Machine Learning.pdf | machine_learning |
 | Million Dollar Habits - Shirley Whetstone.pdf | brian_tracy |
-| Modern Wisdom Reading List - Chris Williamson.pdf | reading_now |
 | Modern Wisdom Reading List.pdf | novels |
 | Most Important Thing Illuminated - Howard Marks.pdf | novels |
 | Myths of Innovation - Scott Berkun.pdf | biographies |
@@ -105,12 +103,11 @@
 | Neuromancer - William Gibson.pdf | sci-fi |
 | Never Split the Difference - Chris Voss.pdf | biographies |
 | Never Split the Difference - Chris Voss.pdf | entrepreneurship |
-| Never Split the Difference - Chris Voss.pdf | reading_now |
 | Of Human Bondage - W. Somerset Maugham.html | biographies |
+| Of Mice And Men - John Steinbeck.pdf | reading_now |
 | Old Man and the Sea.pdf | novels |
 | One Hundred Years of Solitude.pdf | novels |
 | Only the Paranoid Survive - Andrew Grove.pdf | entrepreneurship |
-| Only the Paranoid Survive - Andrew Grove.pdf | reading_now |
 | Operating Systems.pdf | code |
 | Our Great Purpose - Ryan Patrick Hanley.pdf | biographies |
 | Oxygen The molecule that made the world.pdf | biographies |
@@ -120,7 +117,6 @@
 | Plato Complete Works.pdf | stoic |
 | Power, Sex, Suicide - Nick Lane.pdf | biographies |
 | Pragmatic Programmer.pdf | code |
-| Pragmatic Programmer.pdf | reading_now |
 | Press Release ECOSOC.pdf | biographies |
 | Psychological Strategies Included by Strength and.pdf | biographies |
 | Reinforcement Learning An Introduction.pdf | reinforcement_learning |
@@ -132,33 +128,32 @@
 | Sense-Making   Ron Immink.pdf | entrepreneurship |
 | Simple Path to Weatlh - JL Collins.pdf | biographies |
 | Simple Path to Weatlh - JL Collins.pdf | entrepreneurship |
-| Simple Path to Weatlh - JL Collins.pdf | reading_now |
 | Small Is Beautiful   Schumacher.pdf | entrepreneurship |
 | Snow Crash.pdf | sci-fi |
 | Source Code - BIll Gates.pdf | biographies |
 | Source Code - BIll Gates.pdf | personal_favorites |
+| Source Code - Bill Gates.pdf | reading_now |
 | Speak to win - Brian Tracy.pdf | brian_tracy |
 | Stillness Speaks - Eckhart Tolle.pdf | pragmatic |
 | Stoic Six Pack Meditations of Marcus Aurelius.pdf | stoic |
 | System Design Interview - Alex Xu.pdf | code |
 | Take Charge of Your Life The 12 Master Skills - Brian Tracy.pdf | brian_tracy |
 | The 33 Strategies of War - Robert Greene.pdf | war |
-| The 48 Laws of Power   Robert Greene.pdf | war |
-| The Anthology of Balaji.pdf | personal_favorites |
+| The 48 Laws of Power - Robert Greene.pdf | war |
 | The Art of Spending Money - Morgan Housel.pdf | entrepreneurship |
-| The Art of War   Sun Tzu.pdf | war |
+| The Art of War - Sun Tzu.pdf | war |
 | The Bible On Leadership - Lorin Woolfe.pdf | entrepreneurship |
 | The Changing World Order.pdf | entrepreneurship |
 | The Decisive Battles of World History.pdf | war |
 | The Essential Writings of Machiavelli.pdf | war |
 | The Fountainhead - Ayn Rand.pdf | novels |
 | The Hard Thing About Hard Things - Ben Horowitz.pdf | entrepreneurship |
-| The Hard Thing About Hard Things - Ben Horowitz.pdf | reading_now |
 | The Kaggle Book.pdf | machine_learning |
 | The Leap to Leader PDF.pdf | entrepreneurship |
 | The Military Maxims of Napoleon.pdf | war |
 | The Most Important Thing Illuminated - Howard Marks.pdf | entrepreneurship |
 | The Myths of Innovation - Scott Berkun.pdf | entrepreneurship |
+| The Nvidia Way - Tae Kim.pdf | reading_now |
 | The Obstacle Is The Way.pdf | stoic |
 | The Personal MBA Josh Kaufman.pdf | entrepreneurship |
 | The Phoenix Transformation - Brian Tracy.pdf | brian_tracy |
@@ -166,7 +161,7 @@
 | The Pragmatic Programmer.pdf | personal_favorites |
 | The Prince - Niccolo Machiavelli.pdf | war |
 | The Psychology of Achievement - Brian Tracy.pdf | brian_tracy |
-| The Psychology of Money   Morgan Housel.pdf | war |
+| The Psychology of Money - Morgan Housel.pdf | war |
 | The Science of Interstellar - Kip Thorne.pdf | sci-fi |
 | The Science of Money - Brian Tracy & Dan Strutzel.pdf | brian_tracy |
 | The Structure Of Scientific Revolutions .pdf | code |
@@ -181,7 +176,6 @@
 | Well-Spoken Thesaurus - Tom Heehler.pdf | biographies |
 | What To Say When You Talk To Yourself - Shad Helmstetter.pdf | biographies |
 | Why Programs Fail - Andreas Zeller.pdf | code |
-| Why Programs Fail - Andreas Zeller.pdf | reading_now |
 | Windows Internals part1.pdf | hacking |
 | Windows Internals part2.pdf | hacking |
 | Your Most Valuable Asset - Brian Tracy.pdf | brian_tracy |
